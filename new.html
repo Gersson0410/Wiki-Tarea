@@ -2,10 +2,20 @@
 <html lang="es">
   <head>
     <title></title>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="./css/styles.css" />
   </head>
 
   <body>
+    <div class="form-box">
+      <form action="./cgi-bin/new.pl" method="get">
+        <label for="name">Título</label>
+        <input type="text" name="name" /><br />
+        <label for="markdown">Texto</label>
+        <textarea name="markdown" rows="10" class="input-text"></textarea><br />
+        <input type="submit" value="Enviar" />
+      </form>
+      <a href="./cgi-bin/list.pl">Cancelar</a>
+    </div>
   </body>
 </html>
-
