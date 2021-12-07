@@ -32,7 +32,7 @@ my $dbh = DBI->connect($dsn, $user, $password) or die ("No se puedo conectar");
 #Insertar datos
 my $sth = $dbh->prepare("INSERT INTO wiki(name,markdown) VALUES(?,?)");
 $sth->execute($name, $markdown);
-
+$dbh->disconnect;
 print <<HTML;
     <h2><span>Página grabada</span></h2>
     <h2><a href="./list.pl">Listado de Páginas</h2>
