@@ -10,6 +10,7 @@ print <<HTML;
 <html>
   <head>
     <meta charset="utf-8">
+    <link rel="stylesheet" href="./../css/styles.css">
     <title>Listado de páginas</title>
   </head>
   <body>
@@ -27,9 +28,9 @@ $sth->execute();
 print "<ul>\n";
 while(my @row = $sth->fetchrow_array){
     print "<li>\n";
-      print "<a href=".">@row</a>";
-      print "<a href=".">X</a>\n";
-      print "<a href".">E</a>\n";
+      print "<a href='view.pl?name=@row'>@row</a>\n";
+      print "<a href='delete.pl?name=@row' class='delete-button'>X</a>\n";
+      print "<a href='edit.pl?name=@row' class='edit-button'>E</a>\n";
     print "</li>\n";
 }
 print "</ul>\n";
