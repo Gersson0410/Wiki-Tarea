@@ -20,5 +20,29 @@ while(my @row=$sth->fetchrow_array){
   $texto = $row[0];
 }
 
+print <<HTML;
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset= "UTF-8">
+</head>
+
+<body>
+  <h2>$param2</h2>
+     <form action="new.pl">
+          <input type="hidden" name="" value="$param2">
+          <label for="">Texto:</label>
+          <br>
+          <textarea
+          $texto
+          <br>
+ 
+   <input type="submit" value="Enviar">
+  </form>
+  <nav class="menu">
+  <a href="list.pl">Cancelar</a>
+  </nav>
+HTML
+
 
 
