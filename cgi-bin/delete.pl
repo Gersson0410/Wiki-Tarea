@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use DBI;
 use CGI;
+use DBI;
 
 print "Content-type: text/html\n\n";
 print <<HTML;
@@ -17,16 +17,17 @@ HTML
 
 #CGI part
 my $cgi = CGI->new;
-my $name = $cgi->param('name')
+my $name = $cgi->param('name');
 
 #Database part
 my $user= 'alumno';
 my $password = 'pweb1';
 my $dsn = "DBI:MariaDB:database=pweb1;host=192.168.1.106";
-my $dbh = DBI->connect($dsn, $user, $password) or die ("No se puedo conectar");
-#Insertar datos
-my $sth = $dbh->prepare("DELETE FROM wiki WHERE name=?");
+my $dbh = DBI->connect($dsn, $user, $password) or die ("No se puede conectar");
+#Eliminar datos
+my $sth = $dbh->prepare("DELETE from wiki WHERE name=?");
 $sth->execute($name);
+
 $dbh->disconnect;
 
 print <<HTML;
