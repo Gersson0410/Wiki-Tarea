@@ -1,0 +1,9 @@
+.form-box {
+  text-align: center;
+}
+
+.input-text {
+  display: inline-block;
+  width: 30%;
+  border: black solid 2.5px;
+}
