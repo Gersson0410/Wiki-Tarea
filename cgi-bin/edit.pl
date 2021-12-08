@@ -4,45 +4,62 @@ use warnings;
 use CGI;
 use DBI;
 
-my $param1 = CGI -> new;
-my $param2 = $param1 ->param('param1');
-print $param1->header('');
+my $q = CGI->new;
+my $name = $q->param('name');
+print $q->header('text/html;charset=UTF-8');
 
 my $user = 'alumno';
 my $password = 'pweb1';
-my $dsn = "DBI:MariaDB:database=pweb1;host=192.168.1.106";
-my $dbh = DBI->connect($dsn,$user,$password);
-my $sth = $dbh->prepare("SELECT markdown FROM Wiki WHERE name=?");
-$sth->execute($param2);
+my $dsn = "DBI:MariaDB:database=pweb1;host=192.168.1.104";
+my $dbh = DBI->connect($dsn, $user, $password) or die("No se pudo conectar!");;
 
-my $texto;
-while(my @row=$sth->fetchrow_array){
-  $texto = $row[0];
+my $sth = $dbh->prepare("SELECT markdown FROM Wiki WHERE name=?");
+$sth->execute($name);
+my @row;
+my @text;
+while (@row = $sth->fetchrow_array){
+  push (@text,@row);
 }
 
-print <<HTML;
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset= "UTF-8">
-</head>
+$sth->finish;
+$dbh->disconnect;
 
-<body>
-  <h2>$param2</h2>
+my $body = renderBody($name,@text);
+print renderHTMLpage('Edit',$body);
+
+sub renderBody{
+  my $name = $_[0];
+  my $markdown = $_[1];
+  my $body = <<"BODY";
+     <h1>$name</h1>
      <form action="new.pl">
-          <input type="hidden" name="" value="$param2">
-          <label for="">Texto:</label>
-          <br>
-          <textarea
-          $texto
-          <br>
- 
-   <input type="submit" value="Enviar">
-  </form>
-  <nav class="menu">
-  <a href="list.pl">Cancelar</a>
-  </nav>
+      <label for="markdown">Texto</label>
+        <textarea id="cuadro_texto" name="markdown" required>$markdown</textarea>
+      <br>
+      <input type="hidden" name="name" value="$name">
+      <input type="submit" id="boton_submit" value="Enviar">
+    </form>
+    <br>
+    <a href="list.pl">Cancelar</a>
+BODY
+  return $body;
+}
+
+sub renderHTMLpage{
+  my $title = $_[0];
+  my $body = $_[1];
+my $html = <<"HTML";
+  <!DOCTYPE html>
+  <html lang="es">
+    <head>
+      <title>$title</title>
+      <link rel="stylesheet" href="../css/styles.css">
+      <meta charset="UTF-8">
+    </head>
+    <body>
+    $body
+    </body>
+  </html>
 HTML
-
-
-
+  return $html;
+}
