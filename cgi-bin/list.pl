@@ -20,10 +20,10 @@ HTML
 #Database part
 my $user = 'alumno';
 my $password = 'pweb1';
-my $dsn = "DBI:MariaDB:database=pweb1;host=192.168.1.106";
+my $dsn = "DBI:MariaDB:database=pweb1;host=192.168.1.104";
 my $dbh = DBI->connect($dsn, $user, $password) or die("No se pudo conectar!");;
 
-my $sth = $dbh->prepare("SELECT name FROM wiki");
+my $sth = $dbh->prepare("SELECT name FROM Wiki");
 $sth->execute();
 print "<ul>\n";
 while(my @row = $sth->fetchrow_array){
