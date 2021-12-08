@@ -48,11 +48,11 @@ if($line=~/^[*]{3}(.+)[*]{3}$/){
 }elsif($line=~/^[*]{2}(.+)[_](.+)[_](.+)[*]{2}$/){
    $markdownHTML="<p><strong>".$1."<em>".$2."</em>".$3."</strong></p>";
 }elsif($line=~/^[*]{2}(.+)[*]{2}$/){
-   $markdownHTML="<p><strong>".$1."</strong></p>";
+  $markdownHTML="<p><strong>".$1."</strong></p>";
 }elsif($line=~/^```(.+)```$/){
    $markdownHTML="<p><code>\n".$1."\n"."</code></p>";
 }elsif($line=~/^[*]{1}(.+)[*]{1}$/){
-   $markdownHTML="<p><em>".$1."</em></p>";
+  $markdownHTML="<p><em>".$1."</em></p>";
 }elsif($line=~/(.+)\[([a-zA-Z0-9]+)\]\(([a-zA-Z0-9]+)\)/){
   $markdownHTML="<p>".$1."<a href='".$3."'>".$2."</a></p>";
 }else{
