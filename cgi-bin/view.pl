@@ -4,66 +4,140 @@ use warnings;
 use CGI;
 use DBI;
 
-my $param1 = CGI -> new;
-my $param2 = $param1 ->param('param1');
+my $q = CGI->new;
+my $name = $q->param('name');
+
+print $q->header('text/html;charset=UTF-8');
 
 my $user = 'alumno';
 my $password = 'pweb1';
-my $dsn = "DBI:MariaDB:database=pweb1;host=192.168.1.106";
-my $dbh = DBI->connect($dsn,$user,$password);
-my $sth = $dbh->prepare("SELECT markdown FROM Wiki WHERE name=?");
-$sth->execute($param2);
-my $texto = $sth->fetchrow_array;
-$sth->finish;
+my $dsn = "DBI:MariaDB:database=pweb1;host=192.168.1.104";
+my $dbh = DBI->connect($dsn, $user, $password) or die("No se pudo conectar!");;
 
+my $sth = $dbh->prepare("SELECT markdown FROM Wiki WHERE name=?");
+$sth->execute($name);
+
+my @row;
+my @text;
+while (@row = $sth->fetchrow_array){
+  push (@text,@row);
+}
+
+$sth->finish;
 $dbh->disconnect;
 
-print $param1->header('text/html;charset-UTF-8');
-print STDERR "$param2\n";
+my $body = renderBody(@text);
+print renderHTMLpage('View',$name,$body);
 
-my @splittedtext = splitString($texto);
+sub renderBody{
 
-my $markdownHTML = generaMarkdown(@splittedtext);
-print STDERR "$markdownHTML\n";
+  my @lines = @_;
+  my $texto = "";
+  #convierto el string en array para usar la funcion matchLine
+  my @lineas = split "\n", $lines[0];
+  my $num_lineas = @lineas;
 
-my $html = mostrarHTML($markdownHTML,$param2);
-print "$html\n";
+  for (my $i=0; $i<$num_lineas; $i++){
+    my $linea_convertida = "";
+    if ($lineas[$i] =~ /^(```)/){
+      $i++;
+      my $code = "<pre><code>\n";
+      my $code2 = "</code></pre><br>\n";
+      my $textcode = "";
+      for ($i; !($lineas[$i] =~ /^(```)/) && $i<$num_lineas; $i++){
+        $textcode.="   $lineas[$i]\n";
+      }
+      $texto.="$code$textcode$code2";
+    }
+    else {
+      $linea_convertida = matchLine($lineas[$i]); }
+    $texto.="$linea_convertida";
+  }
 
-sub mostrarHTML{
-  my @textLines = @_;
-  my $markdownHTML = "";
-
-  foreach my $line(@textLines){
- if($line=~/^######([^#]+)([a-zA-Z0-9]+)/){
-   $markdownHTML="<h6>".$1.$2."</h6>";
-}elsif($line=~/^##([^#]+)([a-zA-Z0-9]+)/){
-   $markdownHTML="<h2>".$1.$2."</h2>";
-}elsif($line=~/^#([^#]+)([a-zA-Z0-9]+)/){
-   $markdownHTML="<h1>".$1.$2."</h1>";
-}
-if($line=~/^[*]{3}(.+)[*]{3}$/){
-   $markdownHTML="<p><strong><em>".$1."</em></strong></p>";
-}elsif($line=~/^[~]{2}(.+)[~]{2}$/){
-   $markdownHTML="<p>~".$1."~~</p>";
-}elsif($line=~/^[*]{2}(.+)[_](.+)[_](.+)[*]{2}$/){
-   $markdownHTML="<p><strong>".$1."<em>".$2."</em>".$3."</strong></p>";
-}elsif($line=~/^[*]{2}(.+)[*]{2}$/){
-  $markdownHTML="<p><strong>".$1."</strong></p>";
-}elsif($line=~/^```(.+)```$/){
-   $markdownHTML="<p><code>\n".$1."\n"."</code></p>";
-}elsif($line=~/^[*]{1}(.+)[*]{1}$/){
-  $markdownHTML="<p><em>".$1."</em></p>";
-}elsif($line=~/(.+)\[([a-zA-Z0-9]+)\]\(([a-zA-Z0-9]+)\)/){
-  $markdownHTML="<p>".$1."<a href='".$3."'>".$2."</a></p>";
-}else{
-  $markdownHTML="<p>".$line."</p>";
-} 
- }
-return $markdownHTML; 
+  my $body = <<"BODY";
+   $texto
+BODY
+  return $body;
 }
 
-sub splitString{
-  my $texto =$_[0];
-  my @splittedString = split(/\n/, $texto);
-  return @splittedString;
-} 
+sub matchLine{
+  my $linea = $_[0];
+
+  #El primer if para descartar las lineas en blanco
+  if (!($linea =~ /^\s*$/ )){
+
+    while ($linea =~ /(.*)(\_)(.*)(\_)(.*)/){
+      $linea = "$1<em>$3</em>$5";
+    }
+
+    while ($linea =~ /(.*)(\[)(.*)(\])(\()(.*)(\))(.*)/) {
+      $linea = "$1<a href='$6'>$3</a>$8";
+    }
+
+    while ($linea =~ /(.*)(\*\*\*)(.*)(\*\*\*)(.*)/) {
+      $linea = "$1<strong><em>$3</em></strong>$5";
+    }
+
+    while ($linea =~ /(.*)(\*\*)(.*)(\*\*)(.*)/) {
+      $linea = "$1<strong>$3</strong>$5";
+    }
+
+    while ($linea =~ /(.*)(\*)(.*)(\*)(.*)/) {
+      $linea = "$1<em>$3</em>$5";
+    }
+
+    while ($linea =~ /(.*)(\~\~)(.*)(\~\~)(.*)/){
+      $linea = "$1<del>$3</del>$5";
+    }
+
+    if ($linea =~ /^(\#)([^#\S].*)/) {
+      return $linea = "<h1>$2</h1>\n";
+    }
+        elsif ($linea =~ /^(\#\#)([^#\S].*)/) {
+      return $linea = "<h2>$2</h2>\n";
+    }
+
+    elsif ($linea =~ /^(\#\#\#)([^#\S].*)/) {
+      return $linea = "<h3>$2</h3>\n";
+    }
+
+    elsif ($linea =~ /^(\#\#\#\#)([^#\S].*)/) {
+      return $linea = "<h4>$2</h4>\n";
+    }
+
+    elsif ($linea =~ /^(\#\#\#\#\#)([^#\S].*)/) {
+      return $linea = "<h5>$2</h5>\n";
+    }
+
+    elsif ($linea =~ /^(\#\#\#\#\#\#)([^\S].*)/) {
+      return $linea = "<h6>$2</h6>\n";
+    }
+
+    else {
+      return $linea = "<p>$linea</p>\n";
+    }
+  }
+}
+
+sub renderHTMLpage{
+  my $title = $_[0];
+  my $titulo = $_[1];
+  my $body = $_[2];
+  my $link_delete = "<a href='delete.pl?fn=$titulo' id='linkboton'>X</a>";
+  my $link_edit = "<a href='edit.pl?fn=$titulo' id='linkboton'>E</a>";
+  my $html = <<"HTML";
+    <!DOCTYPE html>
+     <html lang="es">
+     <head>
+     <title>$title</title>
+     <link rel="stylesheet" href="../css/styles.css">
+     <meta charset="UTF-8">
+     </head>
+       <body>
+        <h2><a href="list.pl">Retroceder</a> - $link_delete $link_edit</h2>
+         $body
+       </body>
+    </html>
+HTML
+  return $html;
+}
